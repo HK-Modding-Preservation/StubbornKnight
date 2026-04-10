@@ -46,5 +46,5 @@ The following settings can be adjusted in the Mod Options menu from the main men
 When the mod is disabled, all actions are unrestricted and the game behaves as vanilla.
 
 ## 📋 Version
-- Current Version: 1.0
+- Current Version: 1.1
 - Supported Game Version: 1.5.78 (Hollow Knight)
