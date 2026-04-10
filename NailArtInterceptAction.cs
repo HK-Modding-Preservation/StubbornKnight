@@ -1,6 +1,4 @@
 using HutongGames.PlayMaker;
-using Modding;
-using UnityEngine;
 
 namespace StubbornKnight;
 
@@ -25,22 +23,16 @@ public class NailArtInterceptAction : FsmStateAction
         }
 
         ArrowDirection actualDir;
-        
+
         if (ExpectedDirection == ArrowDirection.Left || ExpectedDirection == ArrowDirection.Right)
         {
             actualDir = HeroController.instance.cState.facingRight ? ArrowDirection.Right : ArrowDirection.Left;
         }
-        else if (ExpectedDirection == ArrowDirection.Up)
-        {
-            float verticalInput = UnityEngine.Input.GetAxisRaw("Vertical");
-            actualDir = verticalInput < -0.1f ? ArrowDirection.Down : ArrowDirection.Up;
-        }
         else
         {
-            actualDir = ExpectedDirection;
+            StubbornKnight.TryGetCurrentIntentDirection(out actualDir);
         }
 
-        ArrowDirection expected = arrowGame.CurrentTargetArrow;
         bool isSuccess = arrowGame.IsSpellAllowed(actualDir);
 
         if (!isSuccess)

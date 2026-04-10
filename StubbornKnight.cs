@@ -72,27 +72,7 @@ public class StubbornKnight : Mod, IGlobalSettings<Settings>, IMenuMod
                 return;
             }
 
-            float verticalInput = UnityEngine.Input.GetAxisRaw("Vertical");
-            float horizontalInput = UnityEngine.Input.GetAxisRaw("Horizontal");
-
-            AttackDirection attackDir;
-            if (verticalInput > 0.1f)
-            {
-                attackDir = AttackDirection.upward;
-            }
-            else if (verticalInput < -0.1f && self.hero_state != ActorStates.idle && self.hero_state != ActorStates.running)
-            {
-                attackDir = AttackDirection.downward;
-            }
-            else if (horizontalInput > 0.1f || horizontalInput < -0.1f)
-            {
-                attackDir = AttackDirection.normal;
-            }
-            else
-            {
-                attackDir = AttackDirection.normal;
-            }
-
+            AttackDirection attackDir = GetAttackDirection(self);
             bool isAllowed = arrowGame.IsAttackAllowed(attackDir);
 
             if (isAllowed)
@@ -117,6 +97,90 @@ public class StubbornKnight : Mod, IGlobalSettings<Settings>, IMenuMod
         {
             orig(self);
         }
+    }
+
+    internal static bool TryGetCurrentIntentDirection(out ArrowDirection direction)
+    {
+        HeroController heroController = HeroController.instance;
+        direction = heroController != null && heroController.cState.facingRight
+            ? ArrowDirection.Right
+            : ArrowDirection.Left;
+
+        InputHandler inputHandler = InputHandler.Instance;
+        if (inputHandler == null || inputHandler.inputActions == null)
+        {
+            return false;
+        }
+
+        return TryGetCurrentIntentDirection(inputHandler.inputActions, out direction);
+    }
+
+    private static bool TryGetCurrentIntentDirection(HeroActions inputActions, out ArrowDirection direction)
+    {
+        HeroController heroController = HeroController.instance;
+        ArrowDirection facingDirection = heroController != null && heroController.cState.facingRight
+            ? ArrowDirection.Right
+            : ArrowDirection.Left;
+
+        if (inputActions.up.IsPressed)
+        {
+            direction = ArrowDirection.Up;
+            return true;
+        }
+
+        if (inputActions.down.IsPressed)
+        {
+            direction = ArrowDirection.Down;
+            return true;
+        }
+
+        bool leftPressed = inputActions.left.IsPressed;
+        bool rightPressed = inputActions.right.IsPressed;
+        if (leftPressed && !rightPressed)
+        {
+            direction = ArrowDirection.Left;
+            return true;
+        }
+
+        if (rightPressed && !leftPressed)
+        {
+            direction = ArrowDirection.Right;
+            return true;
+        }
+
+        if (leftPressed || rightPressed)
+        {
+            direction = facingDirection;
+            return true;
+        }
+
+        direction = facingDirection;
+        return false;
+    }
+
+    private static AttackDirection GetAttackDirection(HeroController heroController)
+    {
+        ArrowDirection intentDirection;
+        bool hasDirectionalInput = TryGetCurrentIntentDirection(out intentDirection);
+
+        if (!hasDirectionalInput)
+        {
+            return AttackDirection.normal;
+        }
+
+        if (intentDirection == ArrowDirection.Up)
+        {
+            return AttackDirection.upward;
+        }
+
+        if (intentDirection == ArrowDirection.Down
+            && heroController.hero_state != ActorStates.idle
+            && heroController.hero_state != ActorStates.running)
+        {
+            return AttackDirection.downward;
+        }
+
+        return AttackDirection.normal;
     }
 
     private void PlayMakerFSM_OnEnable(On.PlayMakerFSM.orig_OnEnable orig, PlayMakerFSM self)

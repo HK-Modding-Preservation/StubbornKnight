@@ -1,6 +1,4 @@
 using HutongGames.PlayMaker;
-using Modding;
-using UnityEngine;
 
 namespace StubbornKnight;
 
@@ -21,41 +19,9 @@ public class SpellInterceptAction : FsmStateAction
             return;
         }
 
-        float verticalInput = UnityEngine.Input.GetAxisRaw("Vertical");
-        float horizontalInput = UnityEngine.Input.GetAxisRaw("Horizontal");
-
         ArrowDirection spellDir;
-        string spellName;
-
-        if (verticalInput > 0.1f)
-        {
-            spellDir = ArrowDirection.Up;
-            spellName = "Shriek(吼)";
-        }
-        else if (verticalInput < -0.1f)
-        {
-            spellDir = ArrowDirection.Down;
-            spellName = "Quake(砸)";
-        }
-        else if (horizontalInput > 0.1f)
-        {
-            spellDir = ArrowDirection.Right;
-            spellName = "Fireball(波右)";
-        }
-        else if (horizontalInput < -0.1f)
-        {
-            spellDir = ArrowDirection.Left;
-            spellName = "Fireball(波左)";
-        }
-        else
-        {
-            bool facingRight = HeroController.instance.cState.facingRight;
-            spellDir = facingRight ? ArrowDirection.Right : ArrowDirection.Left;
-            spellName = facingRight ? "Fireball(波右 - 默认)" : "Fireball(波左 - 默认)";
-        }
-
-        ArrowDirection expected = arrowGame.CurrentTargetArrow;
-        bool isSuccess = (spellDir == expected);
+        StubbornKnight.TryGetCurrentIntentDirection(out spellDir);
+        bool isSuccess = arrowGame.IsSpellAllowed(spellDir);
 
         if (!isSuccess)
         {
